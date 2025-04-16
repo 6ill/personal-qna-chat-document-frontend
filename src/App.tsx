@@ -5,54 +5,48 @@ import HomePage from "./pages/HomePage";
 import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import { useEffect, useState } from "react";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
-    const token = useSelector((state: RootState) => state.auth.token);
-    const [isAuthenticated, setAuthenticated] = useState(!!token);
+  const token = useSelector((state: RootState) => state.auth.token);
+  const [isAuthenticated, setAuthenticated] = useState(false);
 
-    useEffect(() => {
-      if (token) {
-        fetch("http://localhost:3000/api/v1/auth/check", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            return response.json();
-          } else if (response.status === 401) {
-            throw new Error("Unauthorized");
-          } else {
-            throw new Error("Unexpected status");
-          }
-        })
-        .then(() => {
-          setAuthenticated(true);
-        })
-        .catch((error) => {
-          setAuthenticated(false);
-        });
-      } else {
+  useEffect(() => {
+    if (token) {
+      fetch("http://localhost:3000/api/v1/auth/check", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          return response.json();
+        } else if (response.status === 401) {
+          throw new Error("Unauthorized");
+        } else {
+          throw new Error("Unexpected status");
+        }
+      })
+      .then(() => {
+        setAuthenticated(true);
+      })
+      .catch((error) => {
         setAuthenticated(false);
-      }
-    }, [token]);
-    return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-            <Route
-              path="/"
-              element={
-                isAuthenticated ? (
-                  <HomePage />
-                ) : (
-                  <Navigate to="/login" replace />
-                )
-              }/>
-        </Routes>
-      </BrowserRouter>
-    );
+      });
+    } else {
+      setAuthenticated(false);
+    }
+  }, [token]);
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />} />
+        <Route path="/register" element={!isAuthenticated ? <RegisterPage /> : <Navigate to="/" replace />} />
+        <Route path="/" element={isAuthenticated ? <HomePage /> : <Navigate to="/login" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
