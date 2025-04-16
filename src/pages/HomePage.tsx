@@ -11,8 +11,8 @@ interface Document {
 }
 
 interface ChatMessage {
-    sender: "user" | "bot";
-    message: string;
+    creator: "user" | "bot";
+    content: string;
 }
 
 const HomePage: React.FC = () => {
@@ -39,6 +39,21 @@ const HomePage: React.FC = () => {
             setError(err.response?.data?.message || 'Failed to fetch documents');
         }
     };
+
+    const fetchMessages = async (documentId:string) => {
+        try {
+            if(documentId === '') return;
+            const response = await axios.get(
+                `http://localhost:3000/api/v1/chats/${documentId}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            setChatHistory(response.data.messages)
+        } catch (err:any) {
+            setError(err.response?.data?.message || 'Failed to fetch messages');
+        }
+    }
 
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
@@ -85,10 +100,9 @@ const HomePage: React.FC = () => {
         }
     };
 
-    const handleDocumentSelect = (doc: Document) => {
+    const handleDocumentSelect = async (doc: Document) => {
         setActiveDocument(doc);
-        // Clear previous chat history when switching files.
-        setChatHistory([]);
+        await fetchMessages(doc.id);
     };
 
     const handleChatSubmit = async (e: FormEvent) => {
@@ -98,7 +112,7 @@ const HomePage: React.FC = () => {
         // Add user's message to chat history
         setChatHistory((prev) => [
             ...prev,
-            { sender: "user", message: chatInput },
+            { creator: "user", content: chatInput },
         ]);
 
         // Clear previous error if any
@@ -131,7 +145,7 @@ const HomePage: React.FC = () => {
             let botMessage = "";
 
             // Optionally, add an initial empty bot message to the history
-            setChatHistory((prev) => [...prev, { sender: "bot", message: "" }]);
+            setChatHistory((prev) => [...prev, { creator: "bot", content: "" }]);
 
             // Continuously read stream data
             while (true) {
@@ -144,8 +158,8 @@ const HomePage: React.FC = () => {
                 setChatHistory((prev) => {
                     const updated = [...prev];
                     const lastIndex = updated.length - 1;
-                    if (lastIndex >= 0 && updated[lastIndex].sender === "bot") {
-                        updated[lastIndex].message = botMessage;
+                    if (lastIndex >= 0 && updated[lastIndex].creator === "bot") {
+                        updated[lastIndex].content = botMessage;
                     }
                     return updated;
                 });
