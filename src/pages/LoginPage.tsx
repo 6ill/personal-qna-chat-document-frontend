@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../store/authSlice';
 
@@ -27,7 +27,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div className="auth-container">
       <h2>Login</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleSubmit}>
@@ -40,7 +40,7 @@ const LoginPage: React.FC = () => {
             required
           />
         </div>
-        <div style={{ marginTop: '1rem' }}>
+        <div>
           <label>Password:&nbsp;</label>
           <input
             type="password"
@@ -49,8 +49,11 @@ const LoginPage: React.FC = () => {
             required
           />
         </div>
-        <button style={{ marginTop: '1rem' }} type="submit">Login</button>
+        <button type="submit">Login</button>
       </form>
+      <p>
+        Don't have an account? <Link to="/register">Register here</Link>.
+      </p>
     </div>
   );
 };

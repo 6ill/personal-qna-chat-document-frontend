@@ -2,6 +2,8 @@ import React, { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
+import LogoutButton from '../components/LogoutButton';
+import ReactMarkdown from 'react-markdown';
 
 interface Document {
     id: string;
@@ -24,7 +26,6 @@ const HomePage: React.FC = () => {
     const [error, setError] = useState('');
     const token = useSelector((state: RootState) => state.auth.token)
 
-    // Fetch uploaded documents on component mount
     useEffect(() => {
         fetchDocuments();
     }, []);
@@ -172,35 +173,22 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <div style={{ display: "flex", height: "100vh" }}>
-            {/* Sidebar for documents and upload */}
-            <div
-                style={{
-                    width: "250px",
-                    borderRight: "1px solid #ccc",
-                    padding: "1rem",
-                    overflowY: "auto",
-                }}
-            >
+        <div className="home-container">
+            {/* Sidebar */}
+            <div className="sidebar">
+                <LogoutButton />
                 <h3>Documents</h3>
-                <ul style={{ listStyle: "none", padding: 0 }}>
+                <ul>
                     {documents.map((doc) => (
                         <li
                             key={doc.id}
-                            style={{
-                                marginBottom: "0.5rem",
-                                cursor: "pointer",
-                                backgroundColor:
-                                    activeDocument?.id === doc.id
-                                        ? "#eef"
-                                        : "transparent",
-                                padding: "0.25rem",
-                            }}
+                            className={
+                                activeDocument?.id === doc.id ? "active" : ""
+                            }
                             onClick={() => handleDocumentSelect(doc)}
                         >
-                            <span>{doc.filename}</span>
+                            {doc.filename}
                             <button
-                                style={{ marginLeft: "0.5rem" }}
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleDelete(doc.id);
@@ -211,99 +199,68 @@ const HomePage: React.FC = () => {
                         </li>
                     ))}
                 </ul>
-                <div style={{ marginTop: "2rem" }}>
+                <div>
                     <h4>Upload New Document</h4>
                     <input
                         type="file"
                         accept="application/pdf"
                         onChange={handleFileChange}
                     />
-                    <button
-                        style={{ display: "block", marginTop: "1rem" }}
-                        onClick={handleUpload}
-                        disabled={!selectedFile}
-                    >
+                    <button onClick={handleUpload} disabled={!selectedFile}>
                         Upload
                     </button>
                 </div>
             </div>
 
             {/* Main Chat Area */}
-            <div
-                style={{
-                    flex: 1,
-                    padding: "1rem",
-                    display: "flex",
-                    flexDirection: "column",
-                }}
-            >
+            <div className="main-chat">
                 <h2>Chat Q&A</h2>
                 {activeDocument ? (
                     <>
-                        <p>
-                            Chatting about:{" "}
-                            <strong>{activeDocument.filename}</strong>
-                        </p>
-                        <div
-                            style={{
-                                flex: 1,
-                                border: "1px solid #ccc",
-                                marginBottom: "1rem",
-                                padding: "0.5rem",
-                                overflowY: "auto",
-                            }}
-                        >
+                        <div className="chat-header">
+                            <p>
+                                Chatting about:{" "}
+                                <strong>{activeDocument.filename}</strong>
+                            </p>
+                        </div>
+                        <div className="chat-messages">
                             {chatHistory.map((chat, index) => (
                                 <div
                                     key={index}
-                                    style={{
-                                        textAlign:
-                                            chat.sender === "user"
-                                                ? "right"
-                                                : "left",
-                                        marginBottom: "0.5rem",
-                                    }}
+                                    className={`chat-message ${chat.creator}`}
                                 >
-                                    <span
-                                        style={{
-                                            backgroundColor:
-                                                chat.sender === "user"
-                                                    ? "#381E59"
-                                                    : "#7E45C9",
-                                            padding: "0.2rem",
-                                            borderRadius: "5px",
-                                        }}
-                                    >
-                                        {chat.message}
-                                    </span>
+                                    {chat.creator === "bot" ? (
+                                        <ReactMarkdown>
+                                            {chat.content}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        chat.content
+                                    )}
                                 </div>
                             ))}
                         </div>
                         <form
                             onSubmit={handleChatSubmit}
-                            style={{ display: "flex" }}
+                            className="chat-input-container"
                         >
                             <input
                                 type="text"
                                 value={chatInput}
                                 placeholder="Type your question here..."
                                 onChange={(e) => setChatInput(e.target.value)}
-                                style={{ flex: 1, padding: "0.5rem" }}
                                 maxLength={600}
                             />
-                            <button
-                                type="submit"
-                                style={{ padding: "0.5rem 1rem" }}
-                            >
-                                Send
-                            </button>
+                            <button type="submit">Send</button>
                         </form>
                     </>
+                ) : documents.length > 0 ? (
+                    <p>Please select a document to start chatting.</p>
                 ) : (
-                    documents.length > 0 ? (
-                        <p>Please select a document to start chatting.</p>) : (
-                        <p>No documents uploaded yet. Please upload a document to start chatting.</p>
-                ))}
+                    <p>
+                        No documents uploaded yet. Please upload a document to
+                        start chatting.
+                    </p>
+                )}
             </div>
 
             {error && (
