@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import LogoutButton from '../components/LogoutButton';
 import ReactMarkdown from 'react-markdown';
+import { SERVER_URL } from '../utils/api';
 
 interface Document {
     id: string;
@@ -25,14 +26,14 @@ const HomePage: React.FC = () => {
     const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
     const [error, setError] = useState('');
     const token = useSelector((state: RootState) => state.auth.token)
-
+    console.log(SERVER_URL)
     useEffect(() => {
         fetchDocuments();
     }, []);
 
     const fetchDocuments = async () => {
         try {
-            const response = await axios.get('http://localhost:3000/api/v1/documents/list', {
+            const response = await axios.get(`${SERVER_URL}/documents/list`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             setDocuments(response.data.documents);
@@ -45,7 +46,7 @@ const HomePage: React.FC = () => {
         try {
             if(documentId === '') return;
             const response = await axios.get(
-                `http://localhost:3000/api/v1/chats/${documentId}`,
+                `${SERVER_URL}/chats/${documentId}`,
                 {
                     headers: { Authorization: `Bearer ${token}` }
                 }
@@ -68,7 +69,7 @@ const HomePage: React.FC = () => {
             const formData = new FormData();
             formData.append('file', selectedFile);
 
-            await axios.post('http://localhost:3000/api/v1/documents/upload', formData, {
+            await axios.post(`${SERVER_URL}/documents/upload`, formData, {
                 headers: {
                 'Content-Type': 'multipart/form-data',
                 Authorization: `Bearer ${token}`,
@@ -84,7 +85,7 @@ const HomePage: React.FC = () => {
     const handleDelete = async (id: string) => {
         try {
             await axios.post(
-                "http://localhost:3000/api/v1/documents/delete",
+                `${SERVER_URL}/documents/delete`,
                 { id },
                 {
                     headers: { Authorization: `Bearer ${token}` },
@@ -122,7 +123,7 @@ const HomePage: React.FC = () => {
         try {
             // Make a POST request to the streaming endpoint
             const response = await fetch(
-                "http://localhost:3000/api/v1/chats/stream",
+                `${SERVER_URL}/chats/stream`,
                 {
                     method: "POST",
                     headers: {
